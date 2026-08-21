@@ -98,23 +98,31 @@
         .card-spread.is-open {
             display: flex;
             flex-direction: row;
+            align-items: stretch;
         }
 
         @media (max-width: 680px) {
             .card-spread.is-open {
                 flex-direction: column;
             }
+            .left-page {
+                border-right: none !important;
+                border-bottom: 1px dashed #ccc;
+            }
         }
 
+        /* DUA HALAMAN DENGAN STRUKTUR DENGAN UKURAN DAN SPASI PERSIS SAMA */
         .card-page {
             flex: 1;
             position: relative;
             background-color: var(--paper-bg);
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            padding: 20px;
+            display: grid;
+            grid-template-rows: 1fr auto;
             align-items: center;
+            justify-items: center;
+            gap: 15px;
+            min-height: 480px;
         }
 
         .left-page {
@@ -151,18 +159,19 @@
         .envelope-wrapper {
             position: relative;
             width: 100%;
-            max-width: 320px;
+            max-width: 300px;
+            height: 100%;
             display: grid;
             grid-template-areas: "stack";
             align-items: center;
             justify-items: center;
-            flex: 1;
         }
 
         .envelope-image, .letter-content {
             grid-area: stack;
             width: 100%;
-            height: 100%;
+            height: auto;
+            max-height: 100%;
             object-fit: contain;
             display: block;
         }
@@ -203,8 +212,6 @@
             box-shadow: 0 3px 6px rgba(0,0,0,0.2);
             transition: background 0.2s, transform 0.1s;
             z-index: 20;
-            margin-top: 10px;
-            margin-bottom: 10px;
         }
 
         .btn-letter-toggle:hover {
@@ -215,26 +222,27 @@
         /* --- HALAMAN KUE & LILIN --- */
         .cake-container {
             width: 100%;
+            height: 100%;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
             position: relative;
-            flex: 1;
         }
 
         .cake-wrapper {
             position: relative;
             width: 100%;
-            max-width: 320px;
+            max-width: 300px;
             display: flex;
             justify-content: center;
+            align-items: center;
         }
 
         /* EFEK NYALA PADA GAMBAR ASLI */
         .cake-image {
             width: 100%;
             height: auto;
+            object-fit: contain;
             display: block;
             transition: filter 0.4s ease;
             filter: drop-shadow(0 0 12px rgba(255, 160, 0, 0.85));
@@ -254,7 +262,8 @@
 
         /* KONTROL MIKROFON */
         .controls-panel {
-            margin-top: 10px;
+            width: 100%;
+            max-width: 300px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -262,7 +271,6 @@
             background: rgba(255,255,255,0.85);
             padding: 10px 15px;
             border-radius: 8px;
-            width: 90%;
             box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
 
@@ -361,15 +369,15 @@
                         <div class="cake-wrapper">
                             <img id="cake-img" class="cake-image" src="https://i.ibb.co.com/5W34LD89/2.png" alt="Cake">
                         </div>
+                    </div>
 
-                        <div class="controls-panel">
-                            <div class="meter-box">
-                                <span>Tiup Mic:</span>
-                                <meter id="blow-meter" min="0" max="1" value="0"></meter>
-                            </div>
-                            <button id="fallback-btn" class="btn-action" onmousedown="startManualBlow()" onmouseup="endManualBlow()" ontouchstart="startManualBlow()" ontouchend="endManualBlow()">Tahan untuk Meniup 💨</button>
-                            <button id="relight-btn" class="btn-action" onclick="relightCandles()" style="display:none;">Nyalakan Lagi 🕯️</button>
+                    <div class="controls-panel">
+                        <div class="meter-box">
+                            <span>Tiup Mic:</span>
+                            <meter id="blow-meter" min="0" max="1" value="0"></meter>
                         </div>
+                        <button id="fallback-btn" class="btn-action" onmousedown="startManualBlow()" onmouseup="endManualBlow()" ontouchstart="startManualBlow()" ontouchend="endManualBlow()">Tahan untuk Meniup 💨</button>
+                        <button id="relight-btn" class="btn-action" onclick="relightCandles()" style="display:none;">Nyalakan Lagi 🕯️</button>
                     </div>
                 </div>
             </div>
