@@ -115,7 +115,6 @@
             flex-direction: column;
             justify-content: space-between;
             align-items: center;
-            min-height: 480px;
         }
 
         .left-page {
@@ -152,42 +151,39 @@
         .envelope-wrapper {
             position: relative;
             width: 100%;
-            display: flex;
-            justify-content: center;
+            max-width: 320px;
+            display: grid;
+            grid-template-areas: "stack";
             align-items: center;
+            justify-items: center;
             flex: 1;
         }
 
-        .envelope-image {
+        .envelope-image, .letter-content {
+            grid-area: stack;
             width: 100%;
-            max-width: 320px;
-            height: auto;
+            height: 100%;
+            object-fit: contain;
             display: block;
+        }
+
+        .envelope-image {
             z-index: 10;
         }
 
         .letter-content {
-            width: 100%;
-            max-width: 320px;
-            height: auto;
             border: 3px solid #fff;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            position: absolute;
             transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             cursor: pointer;
             z-index: 5;
-            top: 100%;
-            left: 50%;
-            transform: translate(-50%, 0) scale(0.5);
             opacity: 0;
+            transform: scale(0.8);
             pointer-events: none;
         }
 
-        /* Action saat tombol Buka Surat diklik */
         .letter-content.letter-open {
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(1.05);
+            transform: scale(1.05);
             box-shadow: 0 20px 40px rgba(0,0,0,0.6);
             z-index: 100;
             opacity: 1;
@@ -230,30 +226,51 @@
         .cake-wrapper {
             position: relative;
             width: 100%;
+            max-width: 320px;
             display: flex;
             justify-content: center;
         }
 
-        /* Efek nyala/kelap-kelip pada lilin gambar asli */
         .cake-image {
             width: 100%;
-            max-width: 320px;
             height: auto;
             display: block;
-            transition: filter 0.3s ease, transform 0.1s ease;
-            filter: drop-shadow(0 0 12px rgba(255, 140, 0, 0.8));
-            animation: candleGlow 0.3s infinite alternate;
         }
 
-        @keyframes candleGlow {
-            0% { filter: drop-shadow(0 0 8px rgba(255, 120, 0, 0.7)); }
-            100% { filter: drop-shadow(0 0 16px rgba(255, 180, 0, 0.9)); }
+        /* ELEMEN API LILIN VIRTUAL */
+        .flame-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
         }
 
-        /* Tampilan kue saat api padam */
-        .cake-image.extinguished {
+        .flame {
+            position: absolute;
+            width: 14px;
+            height: 24px;
+            background: radial-gradient(ellipse at bottom, #ffeb3b 0%, #ff9800 60%, #f44336 100%);
+            border-radius: 50% 50% 35% 35%;
+            filter: drop-shadow(0 0 8px #ff9800);
+            animation: flicker 0.15s infinite alternate;
+            transform: translateX(-50%);
+            transition: opacity 0.3s ease;
+        }
+
+        .flame-1 { top: 28%; left: 33.5%; }
+        .flame-2 { top: 32%; left: 49.5%; }
+        .flame-3 { top: 27%; left: 66.5%; }
+
+        @keyframes flicker {
+            0% { transform: translateX(-50%) scale(1) rotate(-1deg); opacity: 0.95; }
+            100% { transform: translateX(-50%) scale(1.15) rotate(2deg); opacity: 1; }
+        }
+
+        .flame.off {
+            opacity: 0 !important;
             animation: none !important;
-            filter: grayscale(0.2) brightness(0.9);
         }
 
         /* KONTROL MIKROFON */
@@ -339,7 +356,7 @@
     <div id="main-stage">
         <div class="card-perspective-container">
 
-            <!-- COVER CARD (Gambar 1) -->
+            <!-- COVER CARD -->
             <div id="card-cover" class="card-cover" onclick="openCard()">
                 <div class="cover-hint">✦ klik untuk membuka ✦</div>
                 <img id="cover-img" src="https://i.ibb.co.com/QvQn6X6c/1.png" alt="Cover">
@@ -347,7 +364,7 @@
 
             <!-- OPEN SPREAD CARD -->
             <div id="card-spread" class="card-spread">
-                <!-- HALAMAN KIRI: AMPLOP (Gambar 4) & SURAT (Gambar 3) -->
+                <!-- HALAMAN KIRI: AMPLOP & SURAT -->
                 <div class="card-page left-page">
                     <div class="envelope-wrapper">
                         <img id="envelope-img" class="envelope-image" src="https://i.ibb.co.com/Qv1095FW/4.png" alt="Envelope">
@@ -356,7 +373,7 @@
                     <button id="toggle-letter-btn" class="btn-letter-toggle" onclick="toggleLetter()">Buka Surat ✉️</button>
                 </div>
 
-                <!-- HALAMAN KANAN: KUE (Gambar 2) -->
+                <!-- HALAMAN KANAN: KUE & LILIN -->
                 <div class="card-page right-page">
                     <canvas id="confetti"></canvas>
                     <div id="wish-message">Make a wish, Dhis! ✨</div>
@@ -364,6 +381,13 @@
                     <div class="cake-container">
                         <div class="cake-wrapper">
                             <img id="cake-img" class="cake-image" src="https://i.ibb.co.com/5W34LD89/2.png" alt="Cake">
+                            
+                            <!-- EFEK API LILIN -->
+                            <div class="flame-container">
+                                <div class="flame flame-1"></div>
+                                <div class="flame flame-2"></div>
+                                <div class="flame flame-3"></div>
+                            </div>
                         </div>
 
                         <div class="controls-panel">
@@ -449,10 +473,8 @@
             document.getElementById('blow-meter').value = average;
 
             if (average > 0.4 && !isManualBlowing) {
-                animateCakeBlowing(true);
                 startBlowTimer();
             } else if (!isManualBlowing) {
-                animateCakeBlowing(false);
                 cancelBlowTimer();
             }
             requestAnimationFrame(listenAudio);
@@ -462,7 +484,6 @@
             if (areCandlesOut) return;
             isManualBlowing = true;
             document.getElementById('blow-meter').value = 1.0;
-            animateCakeBlowing(true);
             startBlowTimer();
         }
 
@@ -470,17 +491,7 @@
             if (areCandlesOut || !isManualBlowing) return;
             isManualBlowing = false;
             document.getElementById('blow-meter').value = 0;
-            animateCakeBlowing(false);
             cancelBlowTimer();
-        }
-
-        function animateCakeBlowing(isBlowing) {
-            const cake = document.getElementById('cake-img');
-            if (isBlowing && !areCandlesOut) {
-                cake.style.transform = 'scale(0.98) skewX(-2deg)';
-            } else if (!areCandlesOut) {
-                cake.style.transform = 'scale(1) skewX(0deg)';
-            }
         }
 
         function startBlowTimer() {
@@ -499,9 +510,8 @@
         function extinguish() {
             areCandlesOut = true;
             cancelBlowTimer();
-            const cake = document.getElementById('cake-img');
-            cake.classList.add('extinguished');
-            cake.style.transform = 'scale(1) skewX(0deg)';
+            
+            document.querySelectorAll('.flame').forEach(f => f.classList.add('off'));
 
             document.getElementById('wish-message').classList.add('show-wish');
             document.getElementById('fallback-btn').style.display = 'none';
@@ -511,8 +521,8 @@
 
         function relightCandles() {
             areCandlesOut = false;
-            const cake = document.getElementById('cake-img');
-            cake.classList.remove('extinguished');
+            
+            document.querySelectorAll('.flame').forEach(f => f.classList.remove('off'));
 
             document.getElementById('wish-message').classList.remove('show-wish');
             document.getElementById('fallback-btn').style.display = 'block';
