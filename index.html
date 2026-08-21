@@ -536,5 +536,172 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
     </script>
+    // MENGGUNAKAN DIRECT LINK DARI IMGBB
+    document.getElementById('cover-img').src = "https://i.ibb.co.com/FLM8KQjs/1.png";
+    document.getElementById('cake-img').src = "https://i.ibb.co.com/nsvgwCXH/2.png";
+    document.getElementById('letter-img').src = "https://i.ibb.co.com/cKFxnwv2/3.png";
+    document.getElementById('envelope-img').src = "https://i.ibb.co.com/NdDM69gX/4.png";
+
+    let isCardOpen = false;
+    let isLetterLifted = false;
+    let audioContext = null;
+    let analyser = null;
+    let micStream = null;
+    let blowTimeout = null;
+    let areCandlesOut = false;
+    let isManualBlowing = false;
+
+    function openCard() {
+        document.getElementById('card-cover').style.display = 'none';
+        document.getElementById('card-spread').classList.add('is-open');
+        isCardOpen = true;
+        initAudio();
+    }
+
+    function closeCard() {
+        document.getElementById('card-cover').style.display = 'block';
+        document.getElementById('card-spread').classList.remove('is-open');
+        isCardOpen = false;
+        if (isLetterLifted) toggleLetter();
+    }
+
+    function toggleLetter() {
+        if (!isCardOpen) return;
+        isLetterLifted = !isLetterLifted;
+        const letter = document.getElementById('letter-img');
+        if (isLetterLifted) {
+            letter.classList.add('letter-lifted');
+        } else {
+            letter.classList.remove('letter-lifted');
+        }
+    }
+
+    // WEB AUDIO API
+    async function initAudio() {
+        if (areCandlesOut) return;
+        try {
+            micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
+            const source = audioContext.createMediaStreamSource(micStream);
+            source.connect(analyser);
+            listenAudio();
+        } catch (e) {
+            console.log("Mic ditolak atau tidak disupport.");
+        }
+    }
+
+    function listenAudio() {
+        if (!isCardOpen || !analyser || areCandlesOut) return;
+        const data = new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(data);
+        let sum = 0;
+        for (let i = 0; i < data.length; i++) sum += data[i];
+        const average = sum / data.length / 128.0;
+
+        document.getElementById('blow-meter').value = average;
+
+        if (average > 0.4 && !isManualBlowing) {
+            bendFlames(average * 25);
+            startBlowTimer();
+        } else if (!isManualBlowing) {
+            bendFlames(0);
+            cancelBlowTimer();
+        }
+        requestAnimationFrame(listenAudio);
+    }
+
+    function startManualBlow() {
+        if (areCandlesOut) return;
+        isManualBlowing = true;
+        document.getElementById('blow-meter').value = 1.0;
+        bendFlames(30);
+        startBlowTimer();
+    }
+
+    function endManualBlow() {
+        if (areCandlesOut || !isManualBlowing) return;
+        isManualBlowing = false;
+        document.getElementById('blow-meter').value = 0;
+        bendFlames(0);
+        cancelBlowTimer();
+    }
+
+    function bendFlames(deg) {
+        document.querySelectorAll('.flame-svg').forEach(f => {
+            if(!f.classList.contains('flame-out')) {
+                f.style.transform = `rotate(${deg}deg)`;
+            }
+        });
+    }
+
+    function startBlowTimer() {
+        if (!blowTimeout) {
+            blowTimeout = setTimeout(extinguish, 500);
+        }
+    }
+
+    function cancelBlowTimer() {
+        if (blowTimeout) {
+            clearTimeout(blowTimeout);
+            blowTimeout = null;
+        }
+    }
+
+    function extinguish() {
+        areCandlesOut = true;
+        cancelBlowTimer();
+        document.querySelectorAll('.flame-svg').forEach(f => f.classList.add('flame-out'));
+        document.getElementById('wish-message').classList.add('show-wish');
+        document.getElementById('fallback-btn').style.display = 'none';
+        document.getElementById('relight-btn').style.display = 'block';
+        startConfetti();
+    }
+
+    function relightCandles() {
+        areCandlesOut = false;
+        document.querySelectorAll('.flame-svg').forEach(f => f.classList.remove('flame-out'));
+        document.getElementById('wish-message').classList.remove('show-wish');
+        document.getElementById('fallback-btn').style.display = 'block';
+        document.getElementById('relight-btn').style.display = 'none';
+        stopConfetti();
+        initAudio();
+    }
+
+    // CONFETTI
+    let confettiInterval = null;
+    function startConfetti() {
+        const canvas = document.getElementById('confetti');
+        const ctx = canvas.getContext('2d');
+        canvas.width = canvas.parentElement.offsetWidth;
+        canvas.height = canvas.parentElement.offsetHeight;
+        const particles = Array.from({length: 60}, () => ({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height - canvas.height,
+            color: ['#f44336','#2196f3','#4caf50','#ffeb3b','#9c27b0'][Math.floor(Math.random()*5)],
+            size: Math.random() * 6 + 4,
+            speed: Math.random() * 3 + 2
+        }));
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.y += p.speed;
+                if (p.y > canvas.height) p.y = -10;
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, p.size, p.size);
+            });
+        }
+        confettiInterval = setInterval(draw, 20);
+    }
+
+    function stopConfetti() {
+        clearInterval(confettiInterval);
+        const canvas = document.getElementById('confetti');
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+</script>
 </body>
 </html>
