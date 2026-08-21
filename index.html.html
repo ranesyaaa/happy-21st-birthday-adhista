@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Happy Birthday, Dhis!</title>
+<style>
+  body, html {
+    height: 100%;
+    margin: 0;
+    font-family: 'Courier New', Courier, monospace; /* Scrapbooky font */
+    background: #f1e9db url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAMAAAAp4uKfAAAAXVBMVEVMaXFLSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkr9//35AABWREh6UAAAAW50RVh0Q29weXJpZ2h0AAB42mXMMQ5AAAAAyIuH/6182IAD6L7B4R0fKREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREiREv85YwAAAAXHRSTlMAfA+S8AAAASBJREFUSMftjksKgzAURFenZ974Z5K9D4+uH8P0o9vW3j3B+9Zp6G/zJmZ555vPq/A8Hl9X5mGZpvk9X1/X3fG8vW3vH7d//X4/A7/h9Xpf6/v1f1Yf4C8ePz4+Pr4+XhYfHR0dH5+H3//2M/E/E9//E9//S89X7bE+7B//x/uN+Z/5wZ/I+N9+wY//XvFf7375753A73H7AQA8XlE67AAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDI0LTA1LTA4VDA4OjMyOjQ3KzAwOjAwv4b0ZAAAACV0RVh0ZGF0ZTptb2RpZnkAMjAyNC0wNS0wOFQwODozMjo0NyswMDowMC48lG4AAAA4elRYdHNvZnR3YXJlAGh0dHBzOi8vaW1hZ2VtYWdpY2sub3JnL3NjcmlwdHMvcG5nY3J1c2guZ2lmSjhE8AAAABh0RVh0VGh1bWI6OlVSSQBmaWxlOi8vL3Rtby9pbWFnZW1hZ2ljay9zcmMvaW1hZ2UucG5nx4wWtwAAABh0RVh0VGh1bWI6OlRUbWUAMTcxNTE0NDM2N8RkZqEAAAAASUVORK5CYII=');
+    overflow: hidden; /* Prevent page scrolling when card opens */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* --- Utility Styles --- */
+  .hidden { display: none !important; }
+  .cover-active .cover-view { display: block; }
+  .spread-active .spread-view { display: flex; }
+
+  /* --- Cover View --- */
+  .cover-view {
+    position: relative;
+    width: 90vmin; /* Center based on smallest viewport dimension */
+    height: calc(90vmin * (image-aspect-ratio)); /* Will set this in CSS with JS */
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    border: 10px solid #dccdc1; /* Kraft paper frame */
+    transition: transform 0.6s ease-in-out;
+    transform-origin: center;
+    background-size: cover;
+    background-image: url('data:image/png;base64, ... BASE64_OF_IMAGE_0 ... '); /* JS will inject aspect ratio */
+  }
+
+  .cover-view::after { /* Kraft texture overlay */
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: url('data:image/png;base64,... Kraft Texture...') repeat;
+    opacity: 0.15;
+    pointer-events: none;
+  }
+
+  /* --- Spread View --- */
+  .spread-view {
+    display: none;
+    position: fixed; /* Fixed centering on viewport */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 95vmin; /* Spread size */
+    height: calc(95vmin / 2 * (max-aspect-ratio)); /* Calculate height for landscape-ish spread */
+    box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+    perspective: 2000px;
+    z-index: 10;
+  }
+
+  /* Hinge */
+  .spread-view::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    width: 2px;
+    height: 100%;
+    background: rgba(0,0,0,0.1);
+    transform: translateX(-50%);
+    z-index: 2;
+  }
+
+  .back-button {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    padding: 10px 20px;
+    background-color: #a89f94;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  }
+
+  /* Pages */
+  .page {
+    position: absolute;
+    top: 0; width: 50%; height: 100%;
+    background-color: #f7f1e6;
+    background-size: cover;
+    box-sizing: border-box;
+    padding: 40px;
+    transition: transform 0.8s ease-in-out;
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+  }
+
+  .page-left {
+    left: 0;
+    transform-origin: right center;
+    background-image: url('data:image/png;base64,... Kraft Texture...'); /* Subtle paper texture */
+    overflow: hidden;
+  }
+
+  .page-right {
+    right: 0;
+    transform-origin: left center;
+    background-image: url('data:image/png;base64, ... BASE64_OF_IMAGE_1_ERASED_FLAMES ... '); /* JS will inject aspect ratio */
+  }
+
+  /* Open State */
+  .spread-active .cover-view {
+    transform: scale(0.1);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* --- Letter Page (Left) --- */
+  .envelope-container {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    width: calc(100% - 20px);
+    height: calc(100% - 20px);
+    background-image: url('data:image/png;base64, ... BASE64_OF_IMAGE_3 ... ');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center bottom;
+    transition: transform 0.5s ease-out;
+  }
+
+  .letter-image {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image: url('data:image/png;base64, ... BASE64_OF_IMAGE_2 ... ');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: pointer;
+    transition: transform 0.5s ease-out, top 0.5s ease-out, opacity 0.5s ease-out, box-shadow 0.5s ease-out;
+    transform: translateY(15%); /* Tucked in position */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  }
+
+  /* Letter Pulled Out */
+  .letter-pulled {
+    top: 0% !important;
+    transform: translateY(0%) scale(0.95) !important; /* Scale to show margins */
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    z-index: 10;
+  }
+
+  /* --- Candles Page (Right) --- */
+  .candles-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  .flame {
+    position: absolute;
+    width: 15px; /* Flame base size - adjust for collage look */
+    height: 40px; /* Flame base height */
+    background-image: url('data:image/png;base64, ... BASE64_OF_IMAGE_1_SINGLE_FLAME_TRANSPARENT ... ');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center bottom;
+    transform-origin: center bottom;
+    transition: opacity 0.3s ease, transform 0.2s linear;
+    pointer-events: none;
+  }
+
+  /* Positions for flames on image_1 cake */
+  .flame-1 { left: 45%; top: 38%; }
+  .flame-2 { left: 50%; top: 32%; }
+  .flame-3 { left: 55%; top: 38%; }
+
+  /* Bending state */
+  .flame-bend {
+    transform: rotate(20deg) skewX(10deg) scaleY(1.1);
+  }
+
+  /* Extinguished state */
+  .flame-out {
+    opacity: 0 !important;
+  }
+
+  /* Confetti */
+  .confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: #f00; /* Replaced by JS colors */
+    opacity: 0.7;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  /* Blowing Controls & Info */
+  .blowing-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+
+  .wish-message {
+    font-size: 1.2rem;
+    color: #444;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+
+  .relight-button, .fallback-button {
+    padding: 8px 16px;
+    background-color: #d84315;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    margin: 5px;
+  }
+
+  .mic-level-meter {
+    width: 100px;
+    height: 10px;
+    background: #eee;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 10px;
+    overflow: hidden;
+  }
+
+  .mic-level-bar {
+    height: 100%;
+    background: #4caf50;
+    width: 0%;
+    transition: width 0.1s linear;
+  }
+
+  .mic-info-text {
+    font-size: 0.8rem;
+    color: #777;
+    margin-bottom: 10px;
+  }
+
+</style>
+</head>
+<body class="cover-active">
+
+  <!-- --- COVER VIEW --- -->
+  <div id="coverView" class="cover-view"></div>
+
+  <!-- --- SPREAD VIEW --- -->
+  <div id="spreadView" class="spread-view">
+    <button id="backButton" class="back-button">Back to Cover</button>
+
+    <!-- Letter Page (Left) -->
+    <div class="page page-left">
+      <div id="envelopeContainer" class="envelope-container">
+        <div id="letterImage" class="letter-image"></div>
+      </div>
+    </div>
+
+    <!-- Candles Page (Right) -->
+    <div class="page page-right">
+      <div class="candles-container">
+        <!-- Flames - absolute positioned -->
+        <div id="flame1" class="flame flame-1"></div>
+        <div id="flame2" class="flame flame-2"></div>
+        <div id="flame3" class="flame flame-3"></div>
+      </div>
+
+      <!-- Blowing UI/Feedback -->
+      <div class="blowing-controls">
+        <div id="micInfo" class="mic-info-text">
+          🎤 Need to blow? Host online (HTTPS) for the mic to work.<br>
+          <div class="mic-level-meter"><div id="micLevelBar" class="mic-level-bar"></div></div>
+          (Blow or Hold SPACE)
+        </div>
+        <div id="wishMessage" class="wish-message hidden">Make a wish, Dhis!</div>
+        <button id="relightButton" class="relight-button hidden">Relight</button>
+        <button id="fallbackBlow" class="fallback-button">Hold to Blow</button>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // --- Configuration ---
+    const CONF_BLOW_THRESHOLD = 0.25; // Mic input volume threshold
+    const CONF_BLOW_DURATION = 700; // ms required above threshold to blow out
+    const CONF_MIC_UPDATE_INTERVAL = 50; // ms for meter update
+
+    // --- State Variables ---
+    let blowingStartTime = null;
+    let areCandlesOut = false;
+    let audioContext = null;
+    let analyser = null;
+    let microphoneStream = null;
+    let isRelighting = false;
+
+    // --- DOM Elements ---
+    const body = document.body;
+    const coverView = document.getElementById('coverView');
+    const spreadView = document.getElementById('spreadView');
+    const backButton = document.getElementById('backButton');
+    const letterImage = document.getElementById('letterImage');
+    const flames = document.querySelectorAll('.flame');
+    const micLevelBar = document.getElementById('micLevelBar');
+    const wishMessage = document.getElementById('wishMessage');
+    const relightButton = document.getElementById('relightButton');
+    const micInfo = document.getElementById('micInfo');
+    const fallbackBlowBtn = document.getElementById('fallbackBlow');
+
+    // --- BASE64 IMAGES (Placeholders - MUST paste actual data here) ---
+    const img0Base64 = "data:image/png;base64,..."; // Cover Photo (image_0.png)
+    const img1ErasedBase64 = "data:image/png;base64,..."; // Cake with erased flames (image_1.png)
+    const img1FlameBase64 = "data:image/png;base64,..."; // Single transparent flame cutout (from image_1.png)
+    const img2Base64 = "data:image/png;base64,..."; // Letter text (image_2.png)
+    const img3Base64 = "data:image/png;base64,..."; // Envelope (image_3.png)
+
+    // --- Dynamic Aspect Ratio Setting ---
+    function setImageAspectRatios() {
+        // Set cover height
+        coverView.style.backgroundImage = `url('${img0Base64}')`;
+        coverView.style.aspectRatio = "812 / 1080"; // Based on provided image dimensions
+
+        // Set right page background
+        const rightPage = document.querySelector('.page-right');
+        rightPage.style.backgroundImage = `url('${img1ErasedBase64}')`;
+
+        // Set total spread aspect ratio (two page-lefts side-by-sideish)
+        spreadView.style.aspectRatio = "1624 / 1080"; // Rough two-page spread
+
+        // Flame image
+        flames.forEach(f => f.style.backgroundImage = `url('${img1FlameBase64}')`);
+        // Letter and Envelope
+        letterImage.style.backgroundImage = `url('${img2Base64}')`;
+        document.getElementById('envelopeContainer').style.backgroundImage = `url('${img3Base64}')`;
+    }
+    // Call once on load
+    setImageAspectRatios();
+
+
+    // --- 1. Navigation ---
+    coverView.addEventListener('click', () => {
+      if (body.classList.contains('cover-active')) {
+        body.classList.replace('cover-active', 'spread-active');
+        initMic(); // Start listening when opened
+      }
+    });
+
+    backButton.addEventListener('click', () => {
+      body.classList.replace('spread-active', 'cover-active');
+      tuckLetter(); // Ensure letter returns
+      relightCandles(); // Reset candles if they are out
+    });
+
+    // --- 2. Letter Interaction ---
+    letterImage.addEventListener('click', (e) => {
+      e.stopPropagation(); // Don't close the card
+      letterImage.classList.toggle('letter-pulled');
+    });
+
+    function tuckLetter() {
+      letterImage.classList.remove('letter-pulled');
+    }
+
+    // --- 3. Blow Candles Interaction (Web Audio) ---
+
+    async function initMic() {
+      if (audioContext) return; // Already initialized
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        microphoneStream = stream;
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioContext.createAnalyser();
+        const source = audioContext.createMediaStreamSource(stream);
+        source.connect(analyser);
+        analyser.fftSize = 256;
+        checkMicLevel();
+      } catch (err) {
+        console.warn('Microphone access denied or not available (HTTPS needed?):', err);
+        micInfo.innerHTML = "🎤 Microphone access denied.<br>Host on HTTPS or use fallback:<br>Hold 'Hold to Blow' or SPACE.";
+      }
+    }
+
+    function checkMicLevel() {
+      if (!analyser || areCandlesOut || isRelighting) return;
+
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteFrequencyData(dataArray);
+
+      let sum = 0;
+      for (let i = 0; i < dataArray.length; i++) {
+        sum += dataArray[i];
+      }
+      const average = sum / dataArray.length;
+      const normalizedVolume = average / 255;
+
+      // Update Meter
+      micLevelBar.style.width = `${normalizedVolume * 100}%`;
+
+      // Detection logic
+      if (normalizedVolume > CONF_BLOW_THRESHOLD) {
+        onBlowingStart();
+      } else {
+        onBlowingStop();
+      }
+
+      requestAnimationFrame(checkMicLevel);
+    }
+
+    // --- 4. Fallback Blowing (Spacebar and Button) ---
+
+    let fallbackBlowing = false;
+
+    fallbackBlowBtn.addEventListener('mousedown', startFallbackBlow);
+    fallbackBlowBtn.addEventListener('touchstart', startFallbackBlow, {passive: true});
+    window.addEventListener('mouseup', stopFallbackBlow);
+    window.addEventListener('touchend', stopFallbackBlow);
+
+    window.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' && body.classList.contains('spread-active')) {
+            startFallbackBlow();
+        }
+    });
+    window.addEventListener('keyup', (e) => {
+        if (e.code === 'Space') {
+            stopFallbackBlow();
+        }
+    });
+
+    function startFallbackBlow() {
+        if (!areCandlesOut && !fallbackBlowing) {
+            fallbackBlowing = true;
+            onBlowingStart();
+        }
+    }
+    function stopFallbackBlow() {
+        if (fallbackBlowing) {
+            fallbackBlowing = false;
+            onBlowingStop();
+        }
+    }
+
+
+    // --- Core Blowing Logic ---
+
+    function onBlowingStart() {
+      flames.forEach(f => f.classList.add('flame-bend')); // Visual feedback
+      if (!blowingStartTime) {
+        blowingStartTime = Date.now();
+      } else if (Date.now() - blowingStartTime > CONF_BLOW_DURATION) {
+        extinguishCandles();
+      }
+    }
+
+    function onBlowingStop() {
+      flames.forEach(f => f.classList.remove('flame-bend'));
+      blowingStartTime = null;
+    }
+
+    function extinguishCandles() {
+      if (areCandlesOut) return;
+      areCandlesOut = true;
+      flames.forEach(f => f.classList.add('flame-out'));
+      
+      // Post-blow sequence
+      micInfo.classList.add('hidden');
+      wishMessage.classList.remove('hidden');
+      relightButton.classList.remove('hidden');
+      createConfetti();
+    }
+
+    relightButton.addEventListener('click', relightCandles);
+
+    function relightCandles() {
+      isRelighting = true;
+      flames.forEach(f => f.classList.remove('flame-out'));
+      wishMessage.classList.add('hidden');
+      relightButton.classList.add('hidden');
+      micInfo.classList.remove('hidden');
+      areCandlesOut = false;
+      blowingStartTime = null;
+      fallbackBlowing = false;
+      setTimeout(() => {
+          isRelighting = false;
+          checkMicLevel(); // Restart mic check if needed
+      }, 500); // Small cooldown before re-detection
+    }
+
+    // --- 5. Confetti Effect ---
+    function createConfetti() {
+      const pageRight = document.querySelector('.page-right');
+      const colors = ['#f44336', '#e91e63', '#9c27b0', '#2196f3', '#ffeb3b', '#ff9800', '#4caf50'];
+      for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.classList.add('confetti');
+        confetti.style.left = `${Math.random() * 100}%`;
+        confetti.style.top = `${Math.random() * -100}%`; // Start above view
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        
+        // Random falling animation values
+        const drift = (Math.random() - 0.5) * 50; // Random side sway
+        const rotation = Math.random() * 360;
+        const duration = 2 + Math.random() * 3;
+
+        confetti.animate([
+          { transform: `translateY(0px) rotate(0deg)`, opacity: 0.7 },
+          { transform: `translateY(${pageRight.offsetHeight + 100}px) translateX(${drift}px) rotate(${rotation}deg)`, opacity: 0 }
+        ], {
+          duration: duration * 1000,
+          easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+          fill: 'forwards'
+        });
+
+        pageRight.appendChild(confetti);
+
+        // Remove from DOM after animation
+        setTimeout(() => confetti.remove(), duration * 1000);
+      }
+    }
+
+  </script>
+</body>
+</html>
