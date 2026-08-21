@@ -156,6 +156,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            overflow: hidden;
         }
 
         .envelope-image {
@@ -173,23 +174,21 @@
             border: 3px solid #fff;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             position: absolute;
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             cursor: pointer;
             z-index: 5;
-            top: 50%;
+            top: 100%;
             left: 50%;
-            transform: translate(-50%, -50%) scale(0);
+            transform: translate(-50%, 0) scale(0.5);
             opacity: 0;
             pointer-events: none;
         }
 
-        /* Tampilan Saat Tombol Buka Surat Diklik */
-        .letter-content.letter-lifted {
-            width: 90%;
-            max-width: 450px;
+        /* Action saat tombol BUKA SURAT diklik */
+        .letter-content.letter-open {
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%) scale(1.1) rotate(0deg);
+            transform: translate(-50%, -50%) scale(1.1);
             box-shadow: 0 20px 40px rgba(0,0,0,0.6);
             z-index: 100;
             opacity: 1;
@@ -197,7 +196,7 @@
         }
 
         .btn-letter-toggle {
-            padding: 9px 20px;
+            padding: 10px 22px;
             font-size: 13px;
             font-family: inherit;
             font-weight: bold;
@@ -234,37 +233,25 @@
             max-width: 300px;
         }
 
+        /* Efek nyala/kelap-kelip pada lilin gambar asli */
         .cake-image {
             width: 100%;
             height: auto;
             display: block;
+            transition: filter 0.3s ease, transform 0.1s ease;
+            filter: drop-shadow(0 0 12px rgba(255, 140, 0, 0.8));
+            animation: candleGlow 0.3s infinite alternate;
         }
 
-        /* POSISI API PRESISI DI ATAS LILIN KUE */
-        .flame-svg {
-            position: absolute;
-            width: 22px;
-            height: 30px;
-            fill: #ff9800;
-            filter: drop-shadow(0 0 6px #ff5722);
-            transform-origin: bottom center;
-            transition: transform 0.1s, opacity 0.5s;
-            animation: flicker 0.2s infinite alternate;
-            z-index: 30;
+        @keyframes candleGlow {
+            0% { filter: drop-shadow(0 0 8px rgba(255, 120, 0, 0.7)); }
+            100% { filter: drop-shadow(0 0 16px rgba(255, 180, 0, 0.9)); }
         }
 
-        @keyframes flicker {
-            0% { transform: scale(1) rotate(-3deg); }
-            100% { transform: scale(1.15) rotate(3deg); }
-        }
-
-        .flame-1 { top: 22.5%; left: 27.5%; }
-        .flame-2 { top: 32%; left: 47%; }
-        .flame-3 { top: 22.5%; left: 66%; }
-
-        .flame-out {
-            opacity: 0 !important;
+        /* Tampilan kue saat api padam */
+        .cake-image.extinguished {
             animation: none !important;
+            filter: grayscale(0.2) brightness(0.9);
         }
 
         /* KONTROL MIKROFON */
@@ -364,7 +351,7 @@
                         <img id="envelope-img" class="envelope-image" src="https://i.ibb.co.com/NdDM69gX/4.png" alt="Envelope">
                         <img id="letter-img" class="letter-content" src="https://i.ibb.co.com/cKFxnwv2/3.png" alt="Letter" onclick="toggleLetter()">
                     </div>
-                    <button id="toggle-letter-btn" class="btn-letter-toggle" onclick="toggleLetter()">Buka Surat ✉️</button>
+                    <button id="toggle-letter-btn" class="btn-letter-toggle" onclick="toggleLetter()">BUKA SURAT ✉️</button>
                 </div>
 
                 <!-- HALAMAN KANAN: KUE & LILIN -->
@@ -375,11 +362,6 @@
                     <div class="cake-container">
                         <div class="cake-wrapper">
                             <img id="cake-img" class="cake-image" src="https://i.ibb.co.com/nsvgwCXH/2.png" alt="Cake">
-                            
-                            <!-- Api Lilin -->
-                            <svg class="flame-svg flame-1" viewBox="0 0 20 30"><path d="M10 0 C15 10 20 15 20 22 A10 10 0 0 1 0 22 C0 15 5 10 10 0 Z"/></svg>
-                            <svg class="flame-svg flame-2" viewBox="0 0 20 30"><path d="M10 0 C15 10 20 15 20 22 A10 10 0 0 1 0 22 C0 15 5 10 10 0 Z"/></svg>
-                            <svg class="flame-svg flame-3" viewBox="0 0 20 30"><path d="M10 0 C15 10 20 15 20 22 A10 10 0 0 1 0 22 C0 15 5 10 10 0 Z"/></svg>
                         </div>
 
                         <div class="controls-panel">
@@ -401,7 +383,7 @@
 
     <script>
         let isCardOpen = false;
-        let isLetterLifted = false;
+        let isLetterOpen = false;
         let audioContext = null;
         let analyser = null;
         let micStream = null;
@@ -420,21 +402,21 @@
             document.getElementById('card-cover').style.display = 'block';
             document.getElementById('card-spread').classList.remove('is-open');
             isCardOpen = false;
-            if (isLetterLifted) toggleLetter();
+            if (isLetterOpen) toggleLetter();
         }
 
         function toggleLetter() {
             if (!isCardOpen) return;
-            isLetterLifted = !isLetterLifted;
+            isLetterOpen = !isLetterOpen;
             const letter = document.getElementById('letter-img');
             const btn = document.getElementById('toggle-letter-btn');
             
-            if (isLetterLifted) {
-                letter.classList.add('letter-lifted');
-                btn.textContent = "Tutup Surat 📩";
+            if (isLetterOpen) {
+                letter.classList.add('letter-open');
+                btn.textContent = "TUTUP SURAT 📩";
             } else {
-                letter.classList.remove('letter-lifted');
-                btn.textContent = "Buka Surat ✉️";
+                letter.classList.remove('letter-open');
+                btn.textContent = "BUKA SURAT ✉️";
             }
         }
 
@@ -465,10 +447,10 @@
             document.getElementById('blow-meter').value = average;
 
             if (average > 0.4 && !isManualBlowing) {
-                bendFlames(average * 25);
+                animateCakeBlowing(true);
                 startBlowTimer();
             } else if (!isManualBlowing) {
-                bendFlames(0);
+                animateCakeBlowing(false);
                 cancelBlowTimer();
             }
             requestAnimationFrame(listenAudio);
@@ -478,7 +460,7 @@
             if (areCandlesOut) return;
             isManualBlowing = true;
             document.getElementById('blow-meter').value = 1.0;
-            bendFlames(30);
+            animateCakeBlowing(true);
             startBlowTimer();
         }
 
@@ -486,16 +468,17 @@
             if (areCandlesOut || !isManualBlowing) return;
             isManualBlowing = false;
             document.getElementById('blow-meter').value = 0;
-            bendFlames(0);
+            animateCakeBlowing(false);
             cancelBlowTimer();
         }
 
-        function bendFlames(deg) {
-            document.querySelectorAll('.flame-svg').forEach(f => {
-                if(!f.classList.contains('flame-out')) {
-                    f.style.transform = `rotate(${deg}deg)`;
-                }
-            });
+        function animateCakeBlowing(isBlowing) {
+            const cake = document.getElementById('cake-img');
+            if (isBlowing && !areCandlesOut) {
+                cake.style.transform = 'scale(0.98) skewX(-2deg)';
+            } else if (!areCandlesOut) {
+                cake.style.transform = 'scale(1) skewX(0deg)';
+            }
         }
 
         function startBlowTimer() {
@@ -514,7 +497,10 @@
         function extinguish() {
             areCandlesOut = true;
             cancelBlowTimer();
-            document.querySelectorAll('.flame-svg').forEach(f => f.classList.add('flame-out'));
+            const cake = document.getElementById('cake-img');
+            cake.classList.add('extinguished');
+            cake.style.transform = 'scale(1) skewX(0deg)';
+
             document.getElementById('wish-message').classList.add('show-wish');
             document.getElementById('fallback-btn').style.display = 'none';
             document.getElementById('relight-btn').style.display = 'block';
@@ -523,7 +509,9 @@
 
         function relightCandles() {
             areCandlesOut = false;
-            document.querySelectorAll('.flame-svg').forEach(f => f.classList.remove('flame-out'));
+            const cake = document.getElementById('cake-img');
+            cake.classList.remove('extinguished');
+
             document.getElementById('wish-message').classList.remove('show-wish');
             document.getElementById('fallback-btn').style.display = 'block';
             document.getElementById('relight-btn').style.display = 'none';
